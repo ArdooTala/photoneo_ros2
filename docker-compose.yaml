@@ -24,4 +24,4 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    # command: stdbuf -o L bash
+    command: stdbuf -o L bash

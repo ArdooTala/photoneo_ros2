@@ -10,6 +10,8 @@ RUN add-apt-repository -y ppa:neovim-ppa/unstable \
     && apt update \
     && apt -y install ripgrep xclip neovim
 
+ENV TERM='xterm-256color'
+
 ADD https://raw.githubusercontent.com/ArdooTala/kickstart.nvim/refs/heads/master/init.lua /root/.config/nvim/
 
 RUN apt -y install avahi-daemon libqt5gui5 libavahi-client-dev
