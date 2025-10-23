@@ -1,0 +1,6 @@
+[submodule "photoneo_ros2/aist_phoxi_camera"]
+	path = photoneo_ros2/aist_phoxi_camera
+	url = https://github.com/Automation-Research-Team/aist_phoxi_camera
+[submodule "photoneo_ros2/ddynamic_reconfigure2"]
+	path = photoneo_ros2/ddynamic_reconfigure2
+	url = https://github.com/Automation-Research-Team/ddynamic_reconfigure2
