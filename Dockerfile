@@ -12,15 +12,19 @@ RUN add-apt-repository -y ppa:neovim-ppa/unstable \
 
 ENV TERM='xterm-256color'
 
-ADD https://raw.githubusercontent.com/ArdooTala/kickstart.nvim/refs/heads/master/init.lua /root/.config/nvim/
+ADD https://github.com/ArdooTala/my-nvim-config.git /root/.config/nvim/
 
+# Install PhoXiControl
 RUN apt -y install avahi-daemon libqt5gui5 libavahi-client-dev
 
-COPY ./PhotoneoPhoXiControlInstaller-1.15.0-Ubuntu24-STABLE.run /root/PhotoNeoControl/
+COPY ./PhotoneoPhoXiControlInstaller-1.16.1-Ubuntu24-STABLE.run /root/PhotoNeoControl/
 
 ENV PHOXI_CONTROL_PATH="/opt/Photoneo/PhoXiControl"
 
-RUN /root/PhotoNeoControl/PhotoneoPhoXiControlInstaller-1.15.0-Ubuntu24-STABLE.run --accept ${PHOXI_CONTROL_PATH}
+RUN /root/PhotoNeoControl/PhotoneoPhoXiControlInstaller-1.16.1-Ubuntu24-STABLE.run --accept ${PHOXI_CONTROL_PATH}
+
+# Install aist-phoxi-camera ros package deps
+RUN apt -y install nlohmann-json3-dev
 
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 

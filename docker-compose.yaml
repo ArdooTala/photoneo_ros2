@@ -14,7 +14,7 @@ services:
       - "QT_X11_NO_MITSHM=1" #fix some QT bugs
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./ros2_ws:/ros2_ws
+      - ./ros2_ws:/root/ros2_ws
 #      - /var/run/dbus:/var/run/dbus
       - /dev/shm:/dev/shm
     deploy:
