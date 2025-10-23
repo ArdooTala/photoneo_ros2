@@ -20,6 +20,9 @@ RUN apt -y install avahi-daemon libqt5gui5 libavahi-client-dev
 COPY ./PhotoneoPhoXiControlInstaller-1.16.1-Ubuntu24-STABLE.run /root/PhotoNeoControl/
 
 ENV PHOXI_CONTROL_PATH="/opt/Photoneo/PhoXiControl"
+ENV PATH=${PATH}:${PHOXI_CONTROL_PATH}/bin
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${PHOXI_CONTROL_PATH}/API/lib
+ENV CPATH=${CPATH}:${PHOXI_CONTROL_PATH}/API/include
 
 RUN /root/PhotoNeoControl/PhotoneoPhoXiControlInstaller-1.16.1-Ubuntu24-STABLE.run --accept ${PHOXI_CONTROL_PATH}
 
@@ -28,7 +31,7 @@ RUN apt -y install nlohmann-json3-dev
 
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 
-WORKDIR /ros2_ws
+WORKDIR /root/ros2_ws
 
 COPY ./setup_dbus.sh /root/
 
