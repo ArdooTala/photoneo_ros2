@@ -30,15 +30,16 @@ RUN /root/PhotoNeoControl/PhotoneoPhoXiControlInstaller-1.16.1-Ubuntu24-STABLE.r
 RUN apt -y install nlohmann-json3-dev
 
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-
 WORKDIR /root/ros2_ws
 
-COPY ./setup_dbus.sh /root/
-
-RUN chmod +x /root/setup_dbus.sh
-
-#ENTRYPOINT ["/bin/sh", "-c", "/root/setup_dbus.sh"]
-
-RUN cat /root/setup_dbus.sh >> ~/.bashrc
+RUN apt update && apt -y install dbus-x11
+COPY ./entrypoint.sh /root/entrypoint.sh
+RUN chmod +x /root/entrypoint.sh
+RUN echo "if [ -f /tmp/dbus_session_address ]; then source /tmp/dbus_session_address; fi" >> ~/.bashrc
+ENTRYPOINT ["/root/entrypoint.sh"]
+# COPY ./dbus-config/setup_dbus.sh /root/dbus-config/
+# COPY ./setup_dbus.sh /root/
+# RUN chmod +x /root/dbus/setup_dbus.sh
+# RUN cat /root/dbus-config/setup_dbus.sh >> ~/.bashrc
 
 CMD [ "bash" ]
