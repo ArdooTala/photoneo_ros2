@@ -1,7 +1,8 @@
 services:
   phoxicontrol:
     image: ardootala/phoxicontrol
-    build: .
+    build:
+      context: .
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
@@ -9,14 +10,28 @@ services:
     restart: always
     tty: true
     stdin_open: true
+    hostname: DOCKER-DEV
     environment:
-      - "DISPLAY"
-      - "QT_X11_NO_MITSHM=1" #fix some QT bugs
+      DISPLAY: $DISPLAY
+      QT_X11_NO_MITSHM: 1 #fix some QT bugs
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - ./photoneo_ros2:/root/ros2_ws/src
-#      - /var/run/dbus:/var/run/dbus
-      - /dev/shm:/dev/shm
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw            # allow connecting to the X server
+      - ~/.config/tmux:/root/.config/tmux     # share user configs
+      - ~/.config/git:/root/.config/git       # share user configs
+      - ~/.config/nvim:/root/.config/nvim     # share user configs
+      - ~/.config/bash:/root/.config/bash     # share user configs
+      - ~/.ssh:/root/.ssh                     # share ssh keys for git and remote access
+      - ros2_dev_phoxi:/root/ros2_dev               # ros2 root dir
+      - ./photoneo_ros2:/root/ros2_dev/ros_ws/src:rw
+      - /dev/shm:/dev/shm                           # dbus...?
+      # - /var/run/dbus:/var/run/dbus
+    # post_start:
+    #   - command: chown -R 1001:1001 /home/$USER
+    #     user: root
+    #     privileged: true
+    #     working_dir: /home/$USER
     deploy:
       resources:
         reservations:
@@ -24,4 +39,7 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    command: stdbuf -o L bash
+    # command: stdbuf -o L bash
+
+volumes:
+  ros2_dev_phoxi:
