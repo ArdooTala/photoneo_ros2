@@ -1,37 +1,30 @@
 services:
-  phoxicontrol:
-    image: ardootala/phoxicontrol
+  host_phoxi:
+    image: ardootala/host-phoxi
     build:
       context: .
+      target: host-prod
+      args:
+        USER: $USER
     network_mode: host
-    devices:
-      - /dev/dri:/dev/dri
+    # devices:
+    #   - /dev/dri:/dev/dri
     privileged: true
-    restart: always
+    restart: on-failure
     tty: true
     stdin_open: true
-    hostname: DOCKER-DEV
+    hostname: DOCKER-PHOXI
     environment:
       DISPLAY: $DISPLAY
-      QT_X11_NO_MITSHM: 1 #fix some QT bugs
+      QT_X11_NO_MITSHM: 1
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: all
+      DBUS_SESSION_BUS_ADDRESS: $DBUS_SESSION_BUS_ADDRESS
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw            # allow connecting to the X server
-      - ~/.config/tmux:/root/.config/tmux     # share user configs
-      - ~/.config/git:/root/.config/git       # share user configs
-      - ~/.config/nvim:/root/.config/nvim     # share user configs
-      - ~/.config/bash:/root/.config/bash     # share user configs
-      - ~/.ssh:/root/.ssh                     # share ssh keys for git and remote access
-      - ros2_dev_phoxi:/root/ros2_dev               # ros2 root dir
-      - ./photoneo_ros2:/root/ros2_dev/ros_ws/src:rw
-      - /dev/shm:/dev/shm                           # dbus...?
-      # - /var/run/dbus:/var/run/dbus
-    # post_start:
-    #   - command: chown -R 1001:1001 /home/$USER
-    #     user: root
-    #     privileged: true
-    #     working_dir: /home/$USER
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw              # allow connecting to the X server
+      - /dev/shm:/dev/shm                             # PhoXi SDK needs this for shared memory
+      - /run/user/1001/bus:/run/user/1001/bus
+      - /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket
     deploy:
       resources:
         reservations:
@@ -39,7 +32,44 @@ services:
             - driver: nvidia
               count: all
               capabilities: [gpu]
-    # command: stdbuf -o L bash
+
+  dev_container:
+    image: ardootala/host-phoxi-dev
+    build:
+      context: .
+      target: dev
+      args:
+        USER: $USER
+    network_mode: host
+    # devices:
+    #   - /dev/dri:/dev/dri
+    privileged: true
+    restart: always
+    tty: true
+    stdin_open: true
+    hostname: DOCKER-DEV
+    environment:
+      DISPLAY: $DISPLAY
+      QT_X11_NO_MITSHM: 1
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw              # allow connecting to the X server
+      - ~/.config/tmux:/home/$USER/.config/tmux       # share user configs
+      - ~/.config/git:/home/$USER/.config/git         # share user configs
+      - ~/.config/nvim:/home/$USER/.config/nvim       # share user configs
+      - ~/.config/bash:/home/$USER/.config/bash       # share user configs
+      - ~/.ssh:/home/$USER/.ssh                       # share ssh keys for git and remote access
+      - /dev/shm:/dev/shm                             # PhoXi SDK needs this for shared memory
+      - ros2_dev_phoxi:/home/$USER/ros2_dev           # ros2 root dir
+      - ./photoneo_ros2:/home/$USER/ros2_dev/ros_ws/src:rw
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
 volumes:
   ros2_dev_phoxi:
