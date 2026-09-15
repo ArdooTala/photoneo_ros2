@@ -33,6 +33,8 @@ CMD [ "bash" ]
 # INTERNAL PhoXiControl
 FROM base AS standalone
 
+WORKDIR /root/ros2_dev/ros2_ws
+RUN --mount=type=bind,source=photoneo_ros2,target=src bash -c "source /opt/ros/jazzy/setup.bash && colcon build"
 COPY ./launch_dbus.sh /root/launch_dbus.sh
 RUN << EOT cat >> /root/.bashrc
 if [ -f /tmp/dbus_session_address ]; then
@@ -42,11 +44,17 @@ EOT
 COPY --chmod=755 <<-"EOT" /root/entrypoint.sh
 #!/bin/bash
 /root/launch_dbus.sh
-PhoXiControl &
-exec "$@"
+source /root/ros2_dev/ros2_ws/install/setup.bash
+trap 'kill -2 $ROSLAUNCHPID && wait $ROSLAUNCHPID && exit' SIGINT SIGHUP SIGTERM
+(PhoXiControl) &
+PHOXIPID=$!
+sleep 5
+(ros2 launch aist_phoxi_camera launch.py $@) &
+ROSLAUNCHPID=$!
+while true; do sleep 1; done
 EOT
 ENTRYPOINT ["/root/entrypoint.sh"]
-CMD [ "bash" ]
+CMD [ "id:=InstalledExamples-basic-example" ]
 
 
 # EXTERNAL PhoXiControl

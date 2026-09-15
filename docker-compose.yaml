@@ -91,6 +91,7 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: all
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw              # allow connecting to the X server
+      - /dev/shm:/dev/shm                             # PhoXi SDK needs this for shared memory
     deploy:
       resources:
         reservations:
