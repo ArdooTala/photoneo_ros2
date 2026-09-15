@@ -34,9 +34,17 @@ CMD [ "bash" ]
 FROM base AS standalone
 
 COPY ./launch_dbus.sh /root/launch_dbus.sh
-COPY ./entrypoint.sh /root/entrypoint.sh
-RUN echo "if [ -f /tmp/dbus_session_address ]; then source /tmp/dbus_session_address; fi" >> ~/.bashrc
-
+RUN << EOT cat >> /root/.bashrc
+if [ -f /tmp/dbus_session_address ]; then
+    source /tmp/dbus_session_address
+fi
+EOT
+COPY --chmod=755 <<-"EOT" /root/entrypoint.sh
+#!/bin/bash
+/root/launch_dbus.sh
+PhoXiControl &
+exec "$@"
+EOT
 ENTRYPOINT ["/root/entrypoint.sh"]
 CMD [ "bash" ]
 

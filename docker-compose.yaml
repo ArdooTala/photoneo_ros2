@@ -71,5 +71,33 @@ services:
               count: all
               capabilities: [gpu]
 
+  internal_phoxi:
+    image: ardootala/internal-phoxi
+    build:
+      context: .
+      target: standalone
+    network_mode: host
+    # devices:
+    #   - /dev/dri:/dev/dri
+    privileged: true
+    restart: on-failure
+    tty: true
+    stdin_open: true
+    hostname: DOCKER-PHOXI-INTERNAL
+    environment:
+      DISPLAY: $DISPLAY
+      QT_X11_NO_MITSHM: 1
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw              # allow connecting to the X server
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
 volumes:
   ros2_dev_phoxi:
