@@ -22,26 +22,33 @@ RUN --mount=type=bind,source=PhoXiControl,target=/sources /sources/PhotoneoPhoXi
 
 # Install aist-phoxi-camera ros package deps
 RUN apt -y install nlohmann-json3-dev
-RUN --mount=type=bind,source=photoneo_ros2,target=/temp_pkgs bash -c "source /opt/ros/jazzy/setup.bash && apt update && rosdep update --rosdistro=jazzy && rosdep install -yir --from-paths /temp_pkgs"
-
-RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
-
-WORKDIR /root/ros2_dev
-CMD [ "bash" ]
+RUN --mount=type=bind,source=photoneo_ros2,target=/temp_pkgs <<EOT
+#!/bin/bash
+source /opt/ros/jazzy/setup.bash
+apt update
+rosdep update --rosdistro=jazzy
+rosdep install -yir --from-paths /temp_pkgs
+EOT
 
 
 # INTERNAL PhoXiControl
 FROM base AS standalone
 
 WORKDIR /root/ros2_dev/ros2_ws
-RUN --mount=type=bind,source=photoneo_ros2,target=src bash -c "source /opt/ros/jazzy/setup.bash && colcon build"
+RUN --mount=type=bind,source=photoneo_ros2,target=src <<EOT
+#!/bin/bash
+source /opt/ros/jazzy/setup.bash
+colcon build
+EOT
+
 COPY ./launch_dbus.sh /root/launch_dbus.sh
-RUN << EOT cat >> /root/.bashrc
+RUN <<EOT cat >> /root/.bashrc
 if [ -f /tmp/dbus_session_address ]; then
     source /tmp/dbus_session_address
 fi
 EOT
-COPY --chmod=755 <<-"EOT" /root/entrypoint.sh
+
+COPY --chmod=755 <<'EOT' /root/entrypoint.sh
 #!/bin/bash
 /root/launch_dbus.sh
 source /root/ros2_dev/ros2_ws/install/setup.bash
@@ -53,6 +60,7 @@ sleep 5
 ROSLAUNCHPID=$!
 while true; do sleep 1; done
 EOT
+
 ENTRYPOINT ["/root/entrypoint.sh"]
 CMD [ "id:=InstalledExamples-basic-example" ]
 
@@ -71,17 +79,23 @@ USER $USER
 FROM host-dbus AS host-prod
 
 WORKDIR /home/$USER/ros2_dev/ros2_ws
-RUN --mount=type=bind,source=photoneo_ros2,target=src bash -c "source /opt/ros/jazzy/setup.bash && colcon build"
-COPY --chmod=755 <<-"EOT" ~/entrypoint.sh
+RUN --mount=type=bind,source=photoneo_ros2,target=src <<EOT
+#!/bin/bash
+source /opt/ros/jazzy/setup.bash
+colcon build
+EOT
+
+COPY --chmod=755 <<'EOT' ~/entrypoint.sh
 #!/bin/bash
 source install/setup.bash
-trap 'kill -2 $ROSLAUNCHPID && wait $ROSLAUNCHPID && exit' SIGINT SIGHUP SIGTERM
-(ros2 launch aist_phoxi_camera launch.py $@) &
+trap 'kill -2 $(jobs -p) && wait $ROSLAUNCHPID && exit' SIGINT SIGHUP SIGTERM
+(ros2 launch aist_phoxi_camera launch.py id:=$@) &
 ROSLAUNCHPID=$!
 while true; do sleep 1; done
 EOT
+
 ENTRYPOINT [ "~/entrypoint.sh" ]
-CMD [ "id:=InstalledExamples-basic-example" ]
+CMD [ "InstalledExamples-basic-example" ]
 
 
 # DEV ENV
@@ -94,13 +108,13 @@ ENV TERM=tmux-256color
 RUN echo 'DOCKER-DEV' > /etc/hostname
 
 USER $USER
-RUN << EOT cat >> ~/.bashrc
+RUN <<EOT cat >> ~/.bashrc
 
 if [ -f  ~/.config/bash/.bashrc_custom ]; then
     . ~/.config/bash/.bashrc_custom
 fi
-
 EOT
 
 WORKDIR /home/$USER/ros2_dev
+ENTRYPOINT []
 CMD [ "tmux" ]
